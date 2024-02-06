@@ -37,6 +37,7 @@ SceneNode* rootNode;
 SceneNode* boxNode;
 SceneNode* ballNode;
 SceneNode* padNode;
+SceneNode* lightNode;
 
 double ballRadius = 3.0f;
 
@@ -126,10 +127,14 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     boxNode  = createSceneNode();
     padNode  = createSceneNode();
     ballNode = createSceneNode();
+    lightNode = createSceneNode();
+    lightNode->nodeType = POINT_LIGHT;
+    lightNode->id = 0;
 
     rootNode->children.push_back(boxNode);
     rootNode->children.push_back(padNode);
     rootNode->children.push_back(ballNode);
+    padNode->children.push_back(lightNode);
 
     boxNode->vertexArrayObjectID  = boxVAO;
     boxNode->VAOIndexCount        = box.indices.size();
@@ -350,7 +355,8 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar)
             * glm::rotate(node->rotation.z, glm::vec3(0,0,1))
             * glm::scale(node->scale)
             * glm::translate(-node->referencePoint);
-
+    
+    node->modelMatrix = transformationMatrix; 
     node->currentTransformationMatrix = transformationThusFar * transformationMatrix;
 
     switch(node->nodeType) {
@@ -365,7 +371,14 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar)
 }
 
 void renderNode(SceneNode* node) {
+    // MVP
     glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(node->currentTransformationMatrix));
+    // Model Matrix
+    glUniformMatrix4fv(4, 1, GL_FALSE, glm::value_ptr(node->modelMatrix));
+    // Normal Matrix
+    glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->modelMatrix)));
+    glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -374,7 +387,12 @@ void renderNode(SceneNode* node) {
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }
             break;
-        case POINT_LIGHT: break;
+        case POINT_LIGHT:
+            // Light Position
+            glm::vec3 lightPosition = glm::vec3(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+            glUniform3fv(6, 1, glm::value_ptr(lightPosition));
+            // std::printf("lp %d",  lightPosition.x);
+            break;
         case SPOT_LIGHT: break;
     }
 
