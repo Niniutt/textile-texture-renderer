@@ -4,7 +4,7 @@ in layout(location = 0) vec3 normal;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 2) vec3 fragment_position;
 
-uniform layout(location = 6) vec3 ;
+uniform layout(location = 6) vec3 light_position;
 
 out vec4 color;
 
