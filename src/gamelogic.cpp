@@ -52,6 +52,8 @@ const glm::vec3 padDimensions(30, 3, 40);
 glm::vec3 ballPosition(0, ballRadius + padDimensions.y, boxDimensions.z / 2);
 glm::vec3 ballDirection(1, 1, 0.2f);
 
+glm::vec3 cameraPosition;
+
 CommandLineOptions options;
 
 bool hasStarted        = false;
@@ -129,6 +131,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     ballNode = createSceneNode();
     lightNode = createSceneNode();
     lightNode->nodeType = POINT_LIGHT;
+    lightNode->position = glm::vec3(0.0, 10.0, 0.0);
     lightNode->id = 0;
 
     rootNode->children.push_back(boxNode);
@@ -315,7 +318,7 @@ void updateFrame(GLFWwindow* window) {
 
     glm::mat4 projection = glm::perspective(glm::radians(80.0f), float(windowWidth) / float(windowHeight), 0.1f, 350.f);
 
-    glm::vec3 cameraPosition = glm::vec3(0, 2, -20);
+    cameraPosition = glm::vec3(0, 2, -20);
 
     // Some math to make the camera move in a nice way
     float lookRotation = -0.6 / (1 + exp(-5 * (padPositionX-0.5))) + 0.3;
@@ -339,14 +342,14 @@ void updateFrame(GLFWwindow* window) {
         boxNode->position.z - (boxDimensions.z/2) + (padDimensions.z/2) + (1 - padPositionZ) * (boxDimensions.z - padDimensions.z)
     };
 
-    updateNodeTransformations(rootNode, VP);
-
+    // updateNodeTransformations(rootNode, VP);
+    updateNodeTransformations(rootNode, VP, cameraTransform);
 
 
 
 }
 
-void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar) {
+void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar, glm::mat4 viewTransformation) {
     glm::mat4 transformationMatrix =
               glm::translate(node->position)
             * glm::translate(node->referencePoint)
@@ -356,7 +359,8 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar)
             * glm::scale(node->scale)
             * glm::translate(-node->referencePoint);
     
-    node->modelMatrix = transformationMatrix; 
+    node->modelMatrix = transformationMatrix;
+    node->modelViewMatrix = viewTransformation * transformationMatrix;
     node->currentTransformationMatrix = transformationThusFar * transformationMatrix;
 
     switch(node->nodeType) {
@@ -366,7 +370,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar)
     }
 
     for(SceneNode* child : node->children) {
-        updateNodeTransformations(child, node->currentTransformationMatrix);
+        updateNodeTransformations(child, node->currentTransformationMatrix, viewTransformation);
     }
 }
 
@@ -378,7 +382,8 @@ void renderNode(SceneNode* node) {
     // Normal Matrix
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->modelMatrix)));
     glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(normalMatrix));
-
+    // Camera Position
+    glUniform3fv(7, 1, glm::value_ptr(cameraPosition));
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -389,8 +394,10 @@ void renderNode(SceneNode* node) {
             break;
         case POINT_LIGHT:
             // Light Position
-            glm::vec3 lightPosition = glm::vec3(node->currentTransformationMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
-            glUniform3fv(6, 1, glm::value_ptr(lightPosition));
+            glm::vec3 lightPosition = glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 5.0, 0.0, 1.0));
+
+            glUniform3fv(6, 1, glm::value_ptr(glm::vec3(lightPosition.x, lightPosition.y, lightPosition.z))); 
+
             // std::printf("lp %d",  lightPosition.x);
             break;
         case SPOT_LIGHT: break;
