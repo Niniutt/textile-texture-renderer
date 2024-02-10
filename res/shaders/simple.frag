@@ -1,10 +1,16 @@
 #version 430 core
 
+struct LightSource {
+    vec3 position;
+    vec3 source_color;
+};
+
 in layout(location = 0) vec3 normal;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 2) vec3 fragment_position;
 
-uniform layout(location = 6) vec3 light_position;
+uniform LightSource light_source;
+// uniform layout(location = 6) vec3 light_position;
 uniform layout(location = 7) vec3 camera_position;
 uniform layout(location = 8) vec3 ball_position;
 
@@ -26,12 +32,12 @@ void main()
     vec3 ambient = vec3(0.1, 0.1, 0.1);
 
     // Shadows
-    vec3 fl = light_position - fragment_position;
+    vec3 fl = light_source.position - fragment_position;
     vec3 fb = ball_position - fragment_position;
     bool cast_shadow = length(reject(fl, fb)) < ball_radius && length(fl) >= length(fb) && dot(fb, fl) >= 0;
 
     // Diffuse intensity
-    vec3 light_direction = normalize(light_position - fragment_position);
+    vec3 light_direction = normalize(light_source.position - fragment_position);
     float diffuse_intensity = max(0.0, dot(light_direction, normal_out));
 
     // Specular intensity
@@ -40,7 +46,7 @@ void main()
     float specular_intensity = pow(max(0.0, dot(view_direction, reflected_direction)), 32);
 
     // Left-over component
-    float d = length(fragment_position - light_position);
+    float d = length(fragment_position - light_source.position);
     float la = 1;
     float lb = 0.002;
     float lc = 0.001;
@@ -52,7 +58,7 @@ void main()
     // Diffuse & Specular vectors
     vec3 diffuse_color = vec3(1.0, 1.0, 1.0);
     vec3 diffuse = (cast_shadow? diffuse_shadow_factor : 1.0) * L * diffuse_intensity * diffuse_color + noise;
-    vec3 specular_color = vec3(0.0, 1.0, 1.0);
+    vec3 specular_color = light_source.source_color; // vec3(0.0, 1.0, 1.0);
     vec3 specular = (cast_shadow? specular_shadow_factor : 1.0) * L * specular_intensity * specular_color + noise;
 
     // color = vec4(0.5 * normal_out + 0.5, 1.0);

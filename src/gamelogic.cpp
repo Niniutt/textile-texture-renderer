@@ -366,6 +366,8 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
     switch(node->nodeType) {
         case GEOMETRY: break;
         case POINT_LIGHT: break;
+            // Position & Colors
+            
         case SPOT_LIGHT: break;
     }
 
@@ -399,7 +401,8 @@ void renderNode(SceneNode* node) {
             // Light Position
             glm::vec3 lightPosition = glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 3.0, 0.0, 1.0));
 
-            glUniform3fv(6, 1, glm::value_ptr(glm::vec3(lightPosition.x, lightPosition.y, lightPosition.z))); 
+            glUniform3fv(shader->getUniformFromName("light_source.position"), 1, glm::value_ptr(glm::vec3(lightPosition.x, lightPosition.y, lightPosition.z)));
+            glUniform3fv(shader->getUniformFromName("light_source.source_color"), 1, glm::value_ptr(glm::vec3(0.0, 1.0, 1.0))); 
 
             // std::printf("lp %d",  lightPosition.x);
             break;
