@@ -384,6 +384,9 @@ void renderNode(SceneNode* node) {
     glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(normalMatrix));
     // Camera Position
     glUniform3fv(7, 1, glm::value_ptr(cameraPosition));
+    // Ball Position
+    glm::vec3 ballPosition = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+    glUniform3fv(8, 1, glm::value_ptr(ballPosition));
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -394,7 +397,7 @@ void renderNode(SceneNode* node) {
             break;
         case POINT_LIGHT:
             // Light Position
-            glm::vec3 lightPosition = glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 5.0, 0.0, 1.0));
+            glm::vec3 lightPosition = glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 3.0, 0.0, 1.0));
 
             glUniform3fv(6, 1, glm::value_ptr(glm::vec3(lightPosition.x, lightPosition.y, lightPosition.z))); 
 

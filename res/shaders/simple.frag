@@ -6,11 +6,17 @@ in layout(location = 2) vec3 fragment_position;
 
 uniform layout(location = 6) vec3 light_position;
 uniform layout(location = 7) vec3 camera_position;
+uniform layout(location = 8) vec3 ball_position;
 
 out vec4 color;
 
 float rand(vec2 co) { return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
 float dither(vec2 uv) { return (rand(uv)*2.0-1.0) / 256.0; }
+vec3 reject(vec3 from, vec3 onto) { return from - onto*dot(from, onto)/dot(onto, onto); }
+
+#define ball_radius 3.0
+#define diffuse_shadow_factor 0.5
+#define specular_shadow_factor 0.1
 
 void main()
 {
@@ -18,6 +24,11 @@ void main()
 
     // Ambient
     vec3 ambient = vec3(0.1, 0.1, 0.1);
+
+    // Shadows
+    vec3 fl = light_position - fragment_position;
+    vec3 fb = ball_position - fragment_position;
+    bool cast_shadow = length(reject(fl, fb)) < ball_radius && length(fl) >= length(fb) && dot(fb, fl) >= 0;
 
     // Diffuse intensity
     vec3 light_direction = normalize(light_position - fragment_position);
@@ -40,10 +51,9 @@ void main()
 
     // Diffuse & Specular vectors
     vec3 diffuse_color = vec3(1.0, 1.0, 1.0);
-    vec3 diffuse = L * diffuse_intensity * diffuse_color + noise;
+    vec3 diffuse = (cast_shadow? diffuse_shadow_factor : 1.0) * L * diffuse_intensity * diffuse_color + noise;
     vec3 specular_color = vec3(0.0, 1.0, 1.0);
-    vec3 specular = L * specular_intensity * specular_color + noise;
-
+    vec3 specular = (cast_shadow? specular_shadow_factor : 1.0) * L * specular_intensity * specular_color + noise;
 
     // color = vec4(0.5 * normal_out + 0.5, 1.0);
     color = vec4(ambient + diffuse + specular, 1.0);
