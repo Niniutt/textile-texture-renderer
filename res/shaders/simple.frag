@@ -34,12 +34,16 @@ void main()
     float lb = 0.002;
     float lc = 0.001;
     float L = 1 / (la + lb * d + lc * d * d);
+    
+    // Dithering
+    float noise = dither(textureCoordinates);
 
     // Diffuse & Specular vectors
     vec3 diffuse_color = vec3(1.0, 1.0, 1.0);
-    vec3 diffuse = L * diffuse_intensity * diffuse_color;
+    vec3 diffuse = L * diffuse_intensity * diffuse_color + noise;
     vec3 specular_color = vec3(0.0, 1.0, 1.0);
-    vec3 specular = L * specular_intensity * specular_color;
+    vec3 specular = L * specular_intensity * specular_color + noise;
+
 
     // color = vec4(0.5 * normal_out + 0.5, 1.0);
     color = vec4(ambient + diffuse + specular, 1.0);
