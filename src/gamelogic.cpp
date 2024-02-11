@@ -38,6 +38,8 @@ SceneNode* boxNode;
 SceneNode* ballNode;
 SceneNode* padNode;
 SceneNode* lightNode;
+SceneNode* lightNode2;
+SceneNode* lightNode3;
 
 double ballRadius = 3.0f;
 
@@ -132,12 +134,25 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     lightNode = createSceneNode();
     lightNode->nodeType = POINT_LIGHT;
     lightNode->position = glm::vec3(0.0, 10.0, 0.0);
+    lightNode->color = glm::vec3(1.0, 0.0, 0.0);
     lightNode->id = 0;
+    lightNode2 = createSceneNode();
+    lightNode2->nodeType = POINT_LIGHT;
+    lightNode2->position = glm::vec3(50.0, -50.0, -80.0);
+    lightNode2->color = glm::vec3(0.0, 1.0, 0.0);
+    lightNode2->id = 1;
+    lightNode3 = createSceneNode();
+    lightNode3->nodeType = POINT_LIGHT;
+    lightNode3->position = glm::vec3(-50.0, -50.0, -80.0);
+    lightNode3->color = glm::vec3(0.0, 0.0, 1.0);
+    lightNode3->id = 2;
 
     rootNode->children.push_back(boxNode);
     rootNode->children.push_back(padNode);
     rootNode->children.push_back(ballNode);
     padNode->children.push_back(lightNode);
+    rootNode->children.push_back(lightNode2);
+    rootNode->children.push_back(lightNode3);
 
     boxNode->vertexArrayObjectID  = boxVAO;
     boxNode->VAOIndexCount        = box.indices.size();
@@ -387,8 +402,8 @@ void renderNode(SceneNode* node) {
     // Camera Position
     glUniform3fv(7, 1, glm::value_ptr(cameraPosition));
     // Ball Position
-    glm::vec3 ballPosition = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
-    glUniform3fv(8, 1, glm::value_ptr(ballPosition));
+    glm::vec3 ballPositionUni = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
+    glUniform3fv(8, 1, glm::value_ptr(ballPositionUni));
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -399,12 +414,14 @@ void renderNode(SceneNode* node) {
             break;
         case POINT_LIGHT:
             // Light Position
-            glm::vec3 lightPosition = glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 3.0, 0.0, 1.0));
+            glm::vec3 lightPosition = (node->id == 0) ? 
+                glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 3.0, 0.0, 1.0)) : 
+                glm::vec3(node->modelMatrix  * glm::vec4(0.0, 0.0, 0.0, 1.0));
 
-            glUniform3fv(shader->getUniformFromName("light_source.position"), 1, glm::value_ptr(glm::vec3(lightPosition.x, lightPosition.y, lightPosition.z)));
-            glUniform3fv(shader->getUniformFromName("light_source.source_color"), 1, glm::value_ptr(glm::vec3(0.0, 1.0, 1.0))); 
+            glUniform3fv(shader->getUniformFromName("light_source[" + std::to_string(node->id) + "].position"), 1, glm::value_ptr(lightPosition));
+            glUniform3fv(shader->getUniformFromName("light_source[" + std::to_string(node->id) + "].source_color"), 1, glm::value_ptr(node->color)); 
 
-            // std::printf("lp %d",  lightPosition.x);
+            // std::printf(" id %d ",  lightPosition.z);
             break;
         case SPOT_LIGHT: break;
     }
