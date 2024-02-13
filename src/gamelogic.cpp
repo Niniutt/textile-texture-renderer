@@ -163,8 +163,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     ballNode->vertexArrayObjectID = ballVAO;
     ballNode->VAOIndexCount       = sphere.indices.size();
 
-
-
+    PNGImage image = loadPNGFile("../res/textures/charmap.png");
+    unsigned int textureID = createTextureID(image);
 
 
 
@@ -173,6 +173,22 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     std::cout << fmt::format("Initialized scene with {} SceneNodes.", totalChildren(rootNode)) << std::endl;
 
     std::cout << "Ready. Click to start!" << std::endl;
+}
+
+unsigned int createTextureID(PNGImage image) {
+    unsigned int textureID;
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+                image.width, image.height, 0, 
+                GL_RGBA, GL_UNSIGNED_BYTE, 
+                image.pixels.data());
+    
+
+
+    return textureID;
 }
 
 void updateFrame(GLFWwindow* window) {
