@@ -133,7 +133,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     ballNode = createSceneNode();
     lightNode = createSceneNode();
     lightNode->nodeType = POINT_LIGHT;
-    lightNode->position = glm::vec3(0.0, 10.0, 0.0);
+    lightNode->position = glm::vec3(0.0, 3.0, 0.0);
     lightNode->color = glm::vec3(1.0, 0.0, 0.0);
     lightNode->id = 0;
     lightNode2 = createSceneNode();
@@ -358,7 +358,7 @@ void updateFrame(GLFWwindow* window) {
     };
 
     // updateNodeTransformations(rootNode, VP);
-    updateNodeTransformations(rootNode, VP, cameraTransform);
+    updateNodeTransformations(rootNode, glm::identity<glm::mat4>(), VP);
 
 
 
@@ -374,9 +374,9 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
             * glm::scale(node->scale)
             * glm::translate(-node->referencePoint);
     
-    node->modelMatrix = transformationMatrix;
-    node->modelViewMatrix = viewTransformation * transformationMatrix;
-    node->currentTransformationMatrix = transformationThusFar * transformationMatrix;
+    node->modelMatrix = transformationThusFar * transformationMatrix;
+    // node->modelViewMatrix = viewTransformation * transformationThusFar * transformationMatrix;
+    node->currentTransformationMatrix = viewTransformation * transformationThusFar * transformationMatrix;
 
     switch(node->nodeType) {
         case GEOMETRY: break;
@@ -387,7 +387,7 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
     }
 
     for(SceneNode* child : node->children) {
-        updateNodeTransformations(child, node->currentTransformationMatrix, viewTransformation);
+        updateNodeTransformations(child, node->modelMatrix, viewTransformation);
     }
 }
 
@@ -414,9 +414,7 @@ void renderNode(SceneNode* node) {
             break;
         case POINT_LIGHT:
             // Light Position
-            glm::vec3 lightPosition = (node->id == 0) ? 
-                glm::vec3(padNode->modelMatrix * glm::vec4(0.0, 3.0, 0.0, 1.0)) : 
-                glm::vec3(node->modelMatrix  * glm::vec4(0.0, 0.0, 0.0, 1.0));
+            glm::vec3 lightPosition = glm::vec3(node->modelMatrix  * glm::vec4(0.0, 0.0, 0.0, 1.0));
 
             glUniform3fv(shader->getUniformFromName("light_source[" + std::to_string(node->id) + "].position"), 1, glm::value_ptr(lightPosition));
             glUniform3fv(shader->getUniformFromName("light_source[" + std::to_string(node->id) + "].source_color"), 1, glm::value_ptr(node->color)); 

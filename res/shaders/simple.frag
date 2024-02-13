@@ -40,7 +40,7 @@ void main()
         // Shadows
         vec3 fl = light_source[i].position - fragment_position;
         vec3 fb = ball_position - fragment_position;
-        bool cast_shadow = length(reject(fl, fb)) < ball_radius && length(fl) >= length(fb) && dot(fb, fl) >= 0;
+        bool cast_shadow = length(reject(fb, fl)) < ball_radius && length(fl) >= length(fb) && dot(fb, fl) >= 0;
 
         // Diffuse intensity
         vec3 light_direction = normalize(light_source[i].position - fragment_position);
