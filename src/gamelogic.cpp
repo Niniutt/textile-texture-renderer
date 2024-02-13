@@ -178,15 +178,20 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 unsigned int createTextureID(PNGImage image) {
     unsigned int textureID;
 
+    // Create texture object
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
+    // Copy data into texture object
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
                 image.width, image.height, 0, 
                 GL_RGBA, GL_UNSIGNED_BYTE, 
                 image.pixels.data());
     
-
+    // Texture undersampling and oversampling behaviour
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    
 
     return textureID;
 }
