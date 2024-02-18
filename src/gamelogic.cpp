@@ -40,6 +40,7 @@ SceneNode* padNode;
 SceneNode* lightNode;
 SceneNode* lightNode2;
 SceneNode* lightNode3;
+SceneNode* textNode;
 
 double ballRadius = 3.0f;
 
@@ -120,11 +121,18 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     Mesh pad = cube(padDimensions, glm::vec2(30, 40), true);
     Mesh box = cube(boxDimensions, glm::vec2(90), true, true);
     Mesh sphere = generateSphere(1.0, 40, 40);
+    // Text mesh
+    PNGImage image = loadPNGFile("../res/textures/charmap.png");
+    unsigned int textureID = createTextureID(image);
+    float characterHeightOverWidth = 1.0;
+    float totalTextWidth = 10.0;
+    Mesh text = generateTextGeometryBuffer("text", characterHeightOverWidth, totalTextWidth);
 
     // Fill buffers
     unsigned int ballVAO = generateBuffer(sphere);
     unsigned int boxVAO  = generateBuffer(box);
     unsigned int padVAO  = generateBuffer(pad);
+    unsigned int textVAO = generateBuffer(text);
 
     // Construct scene
     rootNode = createSceneNode();
@@ -146,6 +154,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     lightNode3->position = glm::vec3(-50.0, -50.0, -80.0);
     lightNode3->color = glm::vec3(0.0, 0.0, 1.0);
     lightNode3->id = 2;
+    textNode = createSceneNode();
+    textNode->nodeType = TWOD_GEOMETRY;
 
     rootNode->children.push_back(boxNode);
     rootNode->children.push_back(padNode);
@@ -153,6 +163,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     padNode->children.push_back(lightNode);
     rootNode->children.push_back(lightNode2);
     rootNode->children.push_back(lightNode3);
+    rootNode->children.push_back(textNode);
 
     boxNode->vertexArrayObjectID  = boxVAO;
     boxNode->VAOIndexCount        = box.indices.size();
@@ -162,10 +173,6 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     ballNode->vertexArrayObjectID = ballVAO;
     ballNode->VAOIndexCount       = sphere.indices.size();
-
-    PNGImage image = loadPNGFile("../res/textures/charmap.png");
-    unsigned int textureID = createTextureID(image);
-
 
 
     getTimeDeltaSeconds();
