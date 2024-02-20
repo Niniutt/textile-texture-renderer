@@ -57,6 +57,8 @@ glm::vec3 ballDirection(1, 1, 0.2f);
 
 glm::vec3 cameraPosition;
 
+glm::mat4 orthographicProjection;
+
 CommandLineOptions options;
 
 bool hasStarted        = false;
@@ -124,9 +126,9 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     // Text mesh
     PNGImage image = loadPNGFile("../res/textures/charmap.png");
     unsigned int textureID = createTextureID(image);
-    float characterHeightOverWidth = 1.0;
-    float totalTextWidth = 10.0;
-    Mesh text = generateTextGeometryBuffer("text", characterHeightOverWidth, totalTextWidth);
+    float characterHeightOverWidth = 39/29;
+    float totalTextWidth = 0.5;
+    Mesh text = generateTextGeometryBuffer("text test", characterHeightOverWidth, totalTextWidth);
 
     // Fill buffers
     unsigned int ballVAO = generateBuffer(sphere);
@@ -139,6 +141,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     boxNode  = createSceneNode();
     padNode  = createSceneNode();
     ballNode = createSceneNode();
+    // ballNode->nodeType = TWOD_GEOMETRY;
     lightNode = createSceneNode();
     lightNode->nodeType = POINT_LIGHT;
     lightNode->position = glm::vec3(0.0, 3.0, 0.0);
@@ -156,6 +159,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     lightNode3->id = 2;
     textNode = createSceneNode();
     textNode->nodeType = TWOD_GEOMETRY;
+    textNode->position = glm::vec3(0.0, 0.0, -20.0);
+    textNode->textureID = textureID;
 
     rootNode->children.push_back(boxNode);
     rootNode->children.push_back(padNode);
@@ -174,6 +179,12 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     ballNode->vertexArrayObjectID = ballVAO;
     ballNode->VAOIndexCount       = sphere.indices.size();
 
+    textNode->vertexArrayObjectID = textVAO;
+    textNode->VAOIndexCount       = text.indices.size();
+    std::printf(" size %d ",  text.indices.size());  
+
+    // Orthographic Projection Matrix
+    orthographicProjection = glm::ortho(0, windowWidth, 0, windowHeight);
 
     getTimeDeltaSeconds();
 
@@ -198,7 +209,7 @@ unsigned int createTextureID(PNGImage image) {
     // Texture undersampling and oversampling behaviour
     glGenerateMipmap(GL_TEXTURE_2D);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     return textureID;
 }
@@ -428,10 +439,12 @@ void renderNode(SceneNode* node) {
     glm::mat3 normalMatrix = glm::mat3(glm::transpose(glm::inverse(node->modelMatrix)));
     glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(normalMatrix));
     // Camera Position
-    glUniform3fv(7, 1, glm::value_ptr(cameraPosition));
+    glUniform3fv(shader->getUniformFromName("camera_position"), 1, glm::value_ptr(cameraPosition));
     // Ball Position
     glm::vec3 ballPositionUni = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
-    glUniform3fv(8, 1, glm::value_ptr(ballPositionUni));
+    glUniform3fv(shader->getUniformFromName("ball_position"), 1, glm::value_ptr(ballPositionUni));
+    // Texture ?
+    glUniform1i(shader->getUniformFromName("textured"), 0);
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -450,6 +463,12 @@ void renderNode(SceneNode* node) {
             // std::printf(" id %d ",  lightPosition.z);
             break;
         case SPOT_LIGHT: break;
+        case TWOD_GEOMETRY:
+            glUniform1i(shader->getUniformFromName("textured"), 1);
+            
+            glBindVertexArray(node->vertexArrayObjectID);
+            glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            break;
     }
 
     for(SceneNode* child : node->children) {

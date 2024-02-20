@@ -16,22 +16,18 @@ in layout(location = 2) vec3 fragment_position;
 
 uniform LightSource light_source[number_lights];
 // uniform layout(location = 6) vec3 light_position;
-uniform layout(location = 7) vec3 camera_position;
-uniform layout(location = 8) vec3 ball_position;
+uniform vec3 camera_position;
+uniform vec3 ball_position;
+uniform int textured;
 
 out vec4 color;
 
 float rand(vec2 co) { return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); }
 float dither(vec2 uv) { return (rand(uv)*2.0-1.0) / 256.0; }
 vec3 reject(vec3 from, vec3 onto) { return from - onto*dot(from, onto)/dot(onto, onto); }
-
-void main()
-{
-    vec3 normal_out = normalize(normal);
-
+vec4 phong(vec3 normal_out) {
     // Ambient
     vec3 ambient = vec3(0.1, 0.1, 0.1);
-
     vec3 diffuse;
     vec3 specular;
     vec3 test;
@@ -70,6 +66,20 @@ void main()
     // Dithering
     float noise = 2*dither(textureCoordinates); // 2 for more correction
 
+
+    return vec4(ambient + diffuse + specular + noise, 1.0); // test, 1.0);//
+}
+
+void main()
+{
+    vec3 normal_out = normalize(normal);
+
+    if (textured == 0) {
+        color = phong(normal_out);
+    } else {
+        // White
+        color = vec4(1.0, 1.0, 1.0, 1.0);
+    }
+
     // color = vec4(0.5 * normal_out + 0.5, 1.0);
-    color = vec4(ambient + diffuse + specular + noise, 1.0); // test, 1.0);//
 }
