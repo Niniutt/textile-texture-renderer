@@ -127,8 +127,8 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     PNGImage image = loadPNGFile("../res/textures/charmap.png");
     unsigned int textureID = createTextureID(image);
     float characterHeightOverWidth = 39/29;
-    float totalTextWidth = 0.5;
-    Mesh text = generateTextGeometryBuffer("text test", characterHeightOverWidth, totalTextWidth);
+    float totalTextWidth = 10.0;
+    Mesh text = generateTextGeometryBuffer("abcde", characterHeightOverWidth, totalTextWidth);
 
     // Fill buffers
     unsigned int ballVAO = generateBuffer(sphere);
@@ -159,8 +159,16 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     lightNode3->id = 2;
     textNode = createSceneNode();
     textNode->nodeType = TWOD_GEOMETRY;
-    textNode->position = glm::vec3(0.0, 0.0, -20.0);
+    textNode->position = glm::vec3(0.0, 0.0, -80.0);
     textNode->textureID = textureID;
+    
+    //std::printf("vertices %d", text.vertices);
+    for(int i = 0; i < text.vertices.size(); i++) {
+        for(int j = 0; j < 3; j++) {
+            std::printf("%f ", text.vertices[i][j]);
+        }
+        std::printf("\n");
+    }
 
     rootNode->children.push_back(boxNode);
     rootNode->children.push_back(padNode);
@@ -181,7 +189,7 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
 
     textNode->vertexArrayObjectID = textVAO;
     textNode->VAOIndexCount       = text.indices.size();
-    std::printf(" size %d ",  text.indices.size());  
+    std::printf("size %d    ",  text.indices.size());
 
     // Orthographic Projection Matrix
     orthographicProjection = glm::ortho(0, windowWidth, 0, windowHeight);
@@ -208,7 +216,7 @@ unsigned int createTextureID(PNGImage image) {
     
     // Texture undersampling and oversampling behaviour
     glGenerateMipmap(GL_TEXTURE_2D);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     return textureID;
@@ -420,8 +428,6 @@ void updateNodeTransformations(SceneNode* node, glm::mat4 transformationThusFar,
     switch(node->nodeType) {
         case GEOMETRY: break;
         case POINT_LIGHT: break;
-            // Position & Colors
-            
         case SPOT_LIGHT: break;
     }
 
@@ -465,9 +471,21 @@ void renderNode(SceneNode* node) {
         case SPOT_LIGHT: break;
         case TWOD_GEOMETRY:
             glUniform1i(shader->getUniformFromName("textured"), 1);
+
+            // Orthographic Projection Matrix
+            glUniformMatrix4fv(shader->getUniformFromName("orthographic_projection"), 1, false, glm::value_ptr(orthographicProjection));
+
+            // Bind texture Version 4.3
+            glActiveTexture(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, node->textureID);
+            // Version 4.5
+            // glBindTextureUnit(0, node->textureID);
             
-            glBindVertexArray(node->vertexArrayObjectID);
-            glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            // Draw?
+            if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
             break;
     }
 

@@ -18,7 +18,9 @@ uniform LightSource light_source[number_lights];
 // uniform layout(location = 6) vec3 light_position;
 uniform vec3 camera_position;
 uniform vec3 ball_position;
+// Textures
 uniform int textured;
+layout(binding = 0) uniform sampler2D texture_sample;
 
 out vec4 color;
 
@@ -79,6 +81,7 @@ void main()
     } else {
         // White
         color = vec4(1.0, 1.0, 1.0, 1.0);
+        color = texture(texture_sample, textureCoordinates);
     }
 
     // color = vec4(0.5 * normal_out + 0.5, 1.0);
