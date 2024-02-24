@@ -20,8 +20,9 @@ uniform vec3 camera_position;
 uniform vec3 ball_position;
 // Textures
 uniform int textured;
-layout(binding = 0) uniform sampler2D texture_sample;
 uniform int normal_mapping;
+layout(binding = 0) uniform sampler2D diffuse_texture;
+layout(binding = 1) uniform sampler2D normal_texture;
 
 out vec4 color;
 
@@ -80,9 +81,10 @@ void main()
     if (textured == 0 && normal_mapping == 0) {
         color = phong(normal_out);
     } else if (normal_mapping == 1) {
-        color = phong(normal_out) * texture(texture_sample, textureCoordinates);
+        vec3 normal = normalize(texture(normal_texture, textureCoordinates).rgb);
+        color = phong(normal) * texture(diffuse_texture, textureCoordinates);
     } else {
-        color = texture(texture_sample, textureCoordinates);
+        color = texture(diffuse_texture, textureCoordinates);
     }
 
     // color = vec4(0.5 * normal_out + 0.5, 1.0);

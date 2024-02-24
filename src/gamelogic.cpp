@@ -485,10 +485,10 @@ void renderNode(SceneNode* node) {
             glUniformMatrix4fv(shader->getUniformFromName("orthographic_projection"), 1, false, glm::value_ptr(orthographicProjection));
 
             // Bind texture Version 4.3
-            glActiveTexture(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, node->textureID);
+            // glActiveTexture(GL_TEXTURE_2D);
+            // glBindTexture(GL_TEXTURE_2D, node->textureID);
             // Version 4.5
-            // glBindTextureUnit(0, node->textureID);
+            glBindTextureUnit(0, node->textureID);
             
             // Draw?
             if (node->vertexArrayObjectID != -1) {
@@ -500,8 +500,11 @@ void renderNode(SceneNode* node) {
             glUniform1i(shader->getUniformFromName("normal_mapping"), 1);
 
             // Bind texture Version 4.3
-            glActiveTexture(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, node->textureID);
+            // glActiveTexture(GL_TEXTURE_2D);
+            // glBindTexture(GL_TEXTURE_2D, node->textureID);
+            
+            glBindTextureUnit(0, node->textureID);
+            glBindTextureUnit(1, node->normalMapTextureID);
 
             if(node->vertexArrayObjectID != -1) {
                 glBindVertexArray(node->vertexArrayObjectID);
