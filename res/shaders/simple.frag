@@ -13,6 +13,7 @@ struct LightSource {
 in layout(location = 0) vec3 normal;
 in layout(location = 1) vec2 textureCoordinates;
 in layout(location = 2) vec3 fragment_position;
+in layout(location = 3) mat3 TBN_matrix;
 
 uniform LightSource light_source[number_lights];
 // uniform layout(location = 6) vec3 light_position;
@@ -68,7 +69,7 @@ vec4 phong(vec3 normal_out) {
     }
         
     // Dithering
-    float noise = 2*dither(textureCoordinates); // 2 for more correction
+    float noise = 0*dither(textureCoordinates); // 2 for more correction
 
 
     return vec4(ambient + diffuse + specular + noise, 1.0); // test, 1.0);//
@@ -81,8 +82,9 @@ void main()
     if (textured == 0 && normal_mapping == 0) {
         color = phong(normal_out);
     } else if (normal_mapping == 1) {
-        vec3 normal = normalize(texture(normal_texture, textureCoordinates).rgb);
+        vec3 normal = normalize(TBN_matrix * (texture(normal_texture, textureCoordinates).rgb * 2 - 1));
         color = phong(normal) * texture(diffuse_texture, textureCoordinates);
+        // color = vec4(normal, 1.0);
     } else {
         color = texture(diffuse_texture, textureCoordinates);
     }
