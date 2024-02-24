@@ -129,6 +129,11 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     float characterHeightOverWidth = 39/29;
     float totalTextWidth = 10.0;
     Mesh text = generateTextGeometryBuffer("abcde", characterHeightOverWidth, totalTextWidth);
+    // Get box textures
+    image = loadPNGFile("../res/textures/Brick03_col.png");
+    unsigned int diffuseTextureID = createTextureID(image);
+    image = loadPNGFile("../res/textures/Brick03_nrm.png");
+    unsigned int normalTextureID = createTextureID(image);
 
     // Fill buffers
     unsigned int ballVAO = generateBuffer(sphere);
@@ -139,23 +144,26 @@ void initGame(GLFWwindow* window, CommandLineOptions gameOptions) {
     // Construct scene
     rootNode = createSceneNode();
     boxNode  = createSceneNode();
+    boxNode->nodeType = NORMAL_MAPPED_GEOMETRY;
+    boxNode->textureID = diffuseTextureID;
+    boxNode->normalMapTextureID = normalTextureID;
     padNode  = createSceneNode();
     ballNode = createSceneNode();
     // ballNode->nodeType = TWOD_GEOMETRY;
     lightNode = createSceneNode();
     lightNode->nodeType = POINT_LIGHT;
     lightNode->position = glm::vec3(0.0, 3.0, 0.0);
-    lightNode->color = glm::vec3(1.0, 0.0, 0.0);
+    lightNode->color = glm::vec3(1.0, 1.0, 1.0);
     lightNode->id = 0;
     lightNode2 = createSceneNode();
     lightNode2->nodeType = POINT_LIGHT;
     lightNode2->position = glm::vec3(50.0, -50.0, -80.0);
-    lightNode2->color = glm::vec3(0.0, 1.0, 0.0);
+    lightNode2->color = glm::vec3(0.0, 0.0, 0.0);
     lightNode2->id = 1;
     lightNode3 = createSceneNode();
     lightNode3->nodeType = POINT_LIGHT;
     lightNode3->position = glm::vec3(-50.0, -50.0, -80.0);
-    lightNode3->color = glm::vec3(0.0, 0.0, 1.0);
+    lightNode3->color = glm::vec3(0.0, 0.0, 0.0);
     lightNode3->id = 2;
     textNode = createSceneNode();
     textNode->nodeType = TWOD_GEOMETRY;
@@ -449,8 +457,9 @@ void renderNode(SceneNode* node) {
     // Ball Position
     glm::vec3 ballPositionUni = glm::vec3(ballNode->modelMatrix * glm::vec4(0.0, 0.0, 0.0, 1.0));
     glUniform3fv(shader->getUniformFromName("ball_position"), 1, glm::value_ptr(ballPositionUni));
-    // Texture ?
+    // Textures
     glUniform1i(shader->getUniformFromName("textured"), 0);
+    glUniform1i(shader->getUniformFromName("normal_mapping"), 0);
 
     switch(node->nodeType) {
         case GEOMETRY:
@@ -483,6 +492,18 @@ void renderNode(SceneNode* node) {
             
             // Draw?
             if (node->vertexArrayObjectID != -1) {
+                glBindVertexArray(node->vertexArrayObjectID);
+                glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
+            }
+            break;
+        case NORMAL_MAPPED_GEOMETRY:
+            glUniform1i(shader->getUniformFromName("normal_mapping"), 1);
+
+            // Bind texture Version 4.3
+            glActiveTexture(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, node->textureID);
+
+            if(node->vertexArrayObjectID != -1) {
                 glBindVertexArray(node->vertexArrayObjectID);
                 glDrawElements(GL_TRIANGLES, node->VAOIndexCount, GL_UNSIGNED_INT, nullptr);
             }

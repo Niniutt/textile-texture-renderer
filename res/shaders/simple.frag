@@ -21,6 +21,7 @@ uniform vec3 ball_position;
 // Textures
 uniform int textured;
 layout(binding = 0) uniform sampler2D texture_sample;
+uniform int normal_mapping;
 
 out vec4 color;
 
@@ -76,11 +77,11 @@ void main()
 {
     vec3 normal_out = normalize(normal);
 
-    if (textured == 0) {
+    if (textured == 0 && normal_mapping == 0) {
         color = phong(normal_out);
+    } else if (normal_mapping == 1) {
+        color = phong(normal_out) * texture(texture_sample, textureCoordinates);
     } else {
-        // White
-        color = vec4(1.0, 1.0, 1.0, 1.0);
         color = texture(texture_sample, textureCoordinates);
     }
 
