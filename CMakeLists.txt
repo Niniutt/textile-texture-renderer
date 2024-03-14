@@ -88,7 +88,8 @@ include_directories (src/
                      lib/stb/
                      lib/arrrgh/
                      lib/SFML/include/
-                     lib/imgui)
+                     lib/imgui
+                     lib/imgui/backends)
 
 
 #

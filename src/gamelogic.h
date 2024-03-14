@@ -9,3 +9,8 @@ void initGame(GLFWwindow* window, CommandLineOptions options);
 void updateFrame(GLFWwindow* window);
 void renderFrame(GLFWwindow* window);
 unsigned int createTextureID(PNGImage image);
+
+void imGuiInit(GLFWwindow* window);
+void imGuiStartFrame(GLFWwindow* window);
+void imGuiRenderFrame(GLFWwindow* window);
+void imGuiShutdownFrame(GLFWwindow* window);
