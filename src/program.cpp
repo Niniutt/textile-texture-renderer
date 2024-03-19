@@ -35,6 +35,7 @@ void runProgram(GLFWwindow* window, CommandLineOptions options)
     glClearColor(0.3f, 0.5f, 0.8f, 1.0f);
 
 	initGame(window, options);
+    imGuiInit(window);
 
     // Rendering Loop
     while (!glfwWindowShouldClose(window))
@@ -42,9 +43,10 @@ void runProgram(GLFWwindow* window, CommandLineOptions options)
 	    // Clear colour and depth buffers
 	    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+        imGuiStartFrame(window);
         updateFrame(window);
         renderFrame(window);
+        imGuiRenderFrame(window);
 
 
 
@@ -57,6 +59,7 @@ void runProgram(GLFWwindow* window, CommandLineOptions options)
         // Flip buffers
         glfwSwapBuffers(window);
     }
+    imGuiShutdownFrame(window);
 }
 
 

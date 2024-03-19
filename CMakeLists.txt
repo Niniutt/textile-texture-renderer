@@ -96,7 +96,14 @@ include_directories (src/
 # Add files
 #
 file (GLOB         VENDORS_SOURCES lib/glad/src/glad.c
-								   lib/lodepng/lodepng.cpp)
+								                   lib/lodepng/lodepng.cpp
+                                   lib/imgui/imgui.cpp
+                                   lib/imgui/imgui_demo.cpp
+                                   lib/imgui/imgui_draw.cpp
+                                   lib/imgui/imgui_tables.cpp
+                                   lib/imgui/imgui_widgets.cpp
+                                   lib/imgui/backends/imgui_impl_glfw.cpp
+                                   lib/imgui/backends/imgui_impl_opengl3.cpp)
 file (GLOB_RECURSE PROJECT_HEADERS src/*.hpp
                                    src/*.h)
 file (GLOB_RECURSE PROJECT_SOURCES src/*.cpp
